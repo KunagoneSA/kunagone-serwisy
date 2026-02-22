@@ -10,6 +10,7 @@ import AssetTypeBadge from '../components/AssetTypeBadge'
 import AssetFormModal from '../components/AssetFormModal'
 import DeadlineCard from '../components/DeadlineCard'
 import ServiceEntryCard from '../components/ServiceEntryCard'
+import ServiceEntryFormModal from '../components/ServiceEntryFormModal'
 import type { Deadline, ServiceEntry } from '../types/database'
 
 export default function AssetDetailPage() {
@@ -18,7 +19,6 @@ export default function AssetDetailPage() {
   const { user } = useAuth()
   const { asset, loading, error, refetch: refetchAsset } = useAsset(id)
   const { entries, loading: entriesLoading, refetch: refetchEntries } = useServiceEntries(id)
-  void refetchEntries // used when service entry modal is wired
   const { deadlines, loading: deadlinesLoading, refetch: refetchDeadlines } = useDeadlines(id)
 
   const [showAssetModal, setShowAssetModal] = useState(false)
@@ -192,17 +192,13 @@ export default function AssetDetailPage() {
         />
       )}
 
-      {/* Placeholder modals for service entry and deadline — wired in tasks 11 & 12 */}
       {editingEntry !== undefined && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setEditingEntry(undefined)}
-        >
-          <div className="rounded-xl bg-white p-6 text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-            Formularz wpisu serwisowego (wkrótce)
-            <button onClick={() => setEditingEntry(undefined)} className="ml-4 text-amber-600">Zamknij</button>
-          </div>
-        </div>
+        <ServiceEntryFormModal
+          assetId={asset.id}
+          entry={editingEntry}
+          onClose={() => setEditingEntry(undefined)}
+          onSaved={refetchEntries}
+        />
       )}
 
       {editingDeadline !== undefined && (
