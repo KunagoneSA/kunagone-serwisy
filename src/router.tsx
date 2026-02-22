@@ -7,6 +7,7 @@ import DashboardPage from './pages/DashboardPage'
 import AssetsPage from './pages/AssetsPage'
 import AuditLogPage from './pages/AuditLogPage'
 import SettingsPage from './pages/SettingsPage'
+import AssetDetailPage from './pages/AssetDetailPage'
 
 export const router = createBrowserRouter([
   {
@@ -26,6 +27,7 @@ export const router = createBrowserRouter([
         children: [
           { index: true, element: <DashboardPage /> },
           { path: 'zasoby', element: <AssetsPage /> },
+          { path: 'zasoby/:id', element: <AssetDetailPage /> },
           { path: 'historia', element: <AuditLogPage /> },
           { path: 'ustawienia', element: <SettingsPage /> },
         ],
