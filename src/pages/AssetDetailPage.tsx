@@ -11,6 +11,7 @@ import AssetFormModal from '../components/AssetFormModal'
 import DeadlineCard from '../components/DeadlineCard'
 import ServiceEntryCard from '../components/ServiceEntryCard'
 import ServiceEntryFormModal from '../components/ServiceEntryFormModal'
+import DeadlineFormModal from '../components/DeadlineFormModal'
 import type { Deadline, ServiceEntry } from '../types/database'
 
 export default function AssetDetailPage() {
@@ -202,15 +203,12 @@ export default function AssetDetailPage() {
       )}
 
       {editingDeadline !== undefined && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setEditingDeadline(undefined)}
-        >
-          <div className="rounded-xl bg-white p-6 text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-            Formularz terminu (wkrótce)
-            <button onClick={() => setEditingDeadline(undefined)} className="ml-4 text-amber-600">Zamknij</button>
-          </div>
-        </div>
+        <DeadlineFormModal
+          assetId={asset.id}
+          deadline={editingDeadline}
+          onClose={() => setEditingDeadline(undefined)}
+          onSaved={refetchDeadlines}
+        />
       )}
     </div>
   )
