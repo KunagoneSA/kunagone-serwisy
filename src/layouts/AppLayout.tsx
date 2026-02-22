@@ -1,16 +1,50 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
 import { LayoutDashboard, Truck, History, Settings, Menu, X } from 'lucide-react'
+import { useOverdueCount } from '../hooks/useOverdueCount'
 
 const navItems = [
-  { to: '/', icon: LayoutDashboard, label: 'Panel główny' },
-  { to: '/zasoby', icon: Truck, label: 'Zasoby' },
-  { to: '/historia', icon: History, label: 'Historia zmian' },
-  { to: '/ustawienia', icon: Settings, label: 'Ustawienia' },
+  { to: '/', icon: LayoutDashboard, label: 'Panel główny', showBadge: true },
+  { to: '/zasoby', icon: Truck, label: 'Zasoby', showBadge: false },
+  { to: '/historia', icon: History, label: 'Historia zmian', showBadge: false },
+  { to: '/ustawienia', icon: Settings, label: 'Ustawienia', showBadge: false },
 ] as const
+
+function NavBadge({ count }: { count: number }) {
+  if (count <= 0) return null
+  return (
+    <span className="ml-auto flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[10px] font-bold text-white">
+      {count > 99 ? '99+' : count}
+    </span>
+  )
+}
 
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { count: overdueCount } = useOverdueCount()
+
+  const renderNavLink = (
+    { to, icon: Icon, label, showBadge }: typeof navItems[number],
+    onClick?: () => void
+  ) => (
+    <NavLink
+      key={to}
+      to={to}
+      end={to === '/'}
+      onClick={onClick}
+      className={({ isActive }) =>
+        `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+          isActive
+            ? 'bg-slate-800 text-amber-400'
+            : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
+        }`
+      }
+    >
+      <Icon className="h-[18px] w-[18px]" />
+      {label}
+      {showBadge && <NavBadge count={overdueCount} />}
+    </NavLink>
+  )
 
   return (
     <div className="flex h-screen bg-slate-50">
@@ -25,23 +59,7 @@ export default function AppLayout() {
           </span>
         </div>
         <nav className="flex-1 py-4 px-3 space-y-1">
-          {navItems.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-slate-800 text-amber-400'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                }`
-              }
-            >
-              <Icon className="h-[18px] w-[18px]" />
-              {label}
-            </NavLink>
-          ))}
+          {navItems.map((item) => renderNavLink(item))}
         </nav>
         <div className="border-t border-slate-800 px-4 py-3">
           <p className="text-[11px] text-slate-600 tracking-wide uppercase">Kunagone S.A.</p>
@@ -79,24 +97,7 @@ export default function AppLayout() {
           </button>
         </div>
         <nav className="py-4 px-3 space-y-1">
-          {navItems.map(({ to, icon: Icon, label }) => (
-            <NavLink
-              key={to}
-              to={to}
-              end={to === '/'}
-              onClick={() => setMobileOpen(false)}
-              className={({ isActive }) =>
-                `flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                  isActive
-                    ? 'bg-slate-800 text-amber-400'
-                    : 'text-slate-400 hover:bg-slate-800/60 hover:text-slate-200'
-                }`
-              }
-            >
-              <Icon className="h-[18px] w-[18px]" />
-              {label}
-            </NavLink>
-          ))}
+          {navItems.map((item) => renderNavLink(item, () => setMobileOpen(false)))}
         </nav>
       </aside>
 
@@ -106,9 +107,14 @@ export default function AppLayout() {
         <header className="flex h-14 items-center gap-3 border-b border-slate-200 bg-white px-4 md:hidden">
           <button
             onClick={() => setMobileOpen(true)}
-            className="rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
+            className="relative rounded-md p-1.5 text-slate-600 hover:bg-slate-100"
           >
             <Menu className="h-5 w-5" />
+            {overdueCount > 0 && (
+              <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-bold text-white">
+                {overdueCount > 99 ? '!' : overdueCount}
+              </span>
+            )}
           </button>
           <span className="text-sm font-semibold tracking-wide text-slate-800 uppercase">
             Kunagone Serwisy
