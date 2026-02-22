@@ -1,6 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Truck, CalendarClock, AlertTriangle, Clock } from 'lucide-react'
 import { useDashboardStats } from '../hooks/useDashboardStats'
+import { StatCardSkeleton, Skeleton } from '../components/Skeleton'
 
 const actionLabels: Record<string, string> = {
   insert: 'Dodano',
@@ -40,8 +41,22 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center pt-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
+      <div>
+        <h1 className="text-2xl font-bold tracking-tight text-slate-900">Panel główny</h1>
+        <p className="mt-1 text-sm text-slate-500">Przegląd floty i nadchodzących terminów.</p>
+        <div className="mt-6 grid gap-4 sm:grid-cols-3">
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+          <StatCardSkeleton />
+        </div>
+        <div className="mt-8 space-y-2">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-lg border border-slate-200 bg-white p-3">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="mt-1.5 h-3 w-32" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }

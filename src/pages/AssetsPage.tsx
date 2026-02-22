@@ -4,6 +4,7 @@ import { Plus, Search, Calendar, Wrench, Pencil } from 'lucide-react'
 import { useAssets } from '../hooks/useAssets'
 import AssetTypeBadge from '../components/AssetTypeBadge'
 import AssetFormModal from '../components/AssetFormModal'
+import { TableSkeleton, CardSkeleton } from '../components/Skeleton'
 import type { Asset, AssetType } from '../types/database'
 
 const typeFilters: { label: string; value: AssetType | null }[] = [
@@ -82,9 +83,14 @@ export default function AssetsPage() {
 
       {/* Loading state */}
       {loading && (
-        <div className="mt-12 flex justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
-        </div>
+        <>
+          <div className="mt-6 hidden md:block">
+            <TableSkeleton rows={5} />
+          </div>
+          <div className="mt-6 space-y-3 md:hidden">
+            {Array.from({ length: 3 }).map((_, i) => <CardSkeleton key={i} />)}
+          </div>
+        </>
       )}
 
       {/* Empty state */}

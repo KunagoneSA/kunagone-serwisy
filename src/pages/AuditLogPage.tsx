@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ChevronDown, ChevronUp, History } from 'lucide-react'
 import { useAuditLog } from '../hooks/useAuditLog'
+import { Skeleton } from '../components/Skeleton'
 
 const actionLabels: Record<string, { label: string; className: string }> = {
   insert: { label: 'Dodano', className: 'bg-emerald-100 text-emerald-700 border-emerald-200' },
@@ -125,8 +126,16 @@ export default function AuditLogPage() {
 
       {/* Loading */}
       {loading && (
-        <div className="mt-12 flex justify-center">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
+        <div className="mt-6 space-y-2">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center gap-2">
+                <Skeleton className="h-5 w-24 rounded-md" />
+                <Skeleton className="h-4 w-20" />
+              </div>
+              <Skeleton className="mt-2 h-3 w-36" />
+            </div>
+          ))}
         </div>
       )}
 

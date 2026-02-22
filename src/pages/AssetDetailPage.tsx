@@ -12,6 +12,7 @@ import DeadlineCard from '../components/DeadlineCard'
 import ServiceEntryCard from '../components/ServiceEntryCard'
 import ServiceEntryFormModal from '../components/ServiceEntryFormModal'
 import DeadlineFormModal from '../components/DeadlineFormModal'
+import { Skeleton } from '../components/Skeleton'
 import type { Deadline, ServiceEntry } from '../types/database'
 
 export default function AssetDetailPage() {
@@ -40,8 +41,23 @@ export default function AssetDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex justify-center pt-12">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
+      <div className="mx-auto max-w-4xl">
+        <Skeleton className="h-4 w-16 mb-4" />
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <Skeleton className="h-7 w-48" />
+            <Skeleton className="mt-2 h-4 w-24" />
+          </div>
+          <Skeleton className="h-9 w-24 rounded-lg" />
+        </div>
+        <div className="mt-8 space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+              <Skeleton className="h-4 w-40" />
+              <Skeleton className="mt-2 h-3 w-28" />
+            </div>
+          ))}
+        </div>
       </div>
     )
   }
@@ -125,8 +141,16 @@ export default function AssetDetailPage() {
         </div>
 
         {deadlinesLoading ? (
-          <div className="flex justify-center py-6">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
+          <div className="space-y-3">
+            {Array.from({ length: 2 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="h-5 w-16 rounded-md" />
+                  <Skeleton className="h-4 w-32" />
+                </div>
+                <Skeleton className="mt-2 h-3 w-24" />
+              </div>
+            ))}
           </div>
         ) : deadlines.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
@@ -164,8 +188,13 @@ export default function AssetDetailPage() {
         </div>
 
         {entriesLoading ? (
-          <div className="flex justify-center py-6">
-            <div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" />
+          <div className="space-y-3">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+                <Skeleton className="h-4 w-44" />
+                <Skeleton className="mt-2 h-3 w-28" />
+              </div>
+            ))}
           </div>
         ) : entries.length === 0 ? (
           <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
