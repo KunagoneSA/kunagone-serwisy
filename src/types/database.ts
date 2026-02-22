@@ -56,7 +56,7 @@ export interface AuditLogEntry {
   created_at: string
 }
 
-export interface PushSubscription {
+export interface PushSubscriptionRow {
   id: string
   user_id: string
   subscription: Record<string, unknown>
@@ -78,31 +78,37 @@ export type Database = {
         Row: Asset
         Insert: Omit<Asset, 'id' | 'created_at'> & { id?: string; created_at?: string }
         Update: Partial<Omit<Asset, 'id'>>
+        Relationships: []
       }
       service_entries: {
         Row: ServiceEntry
         Insert: Omit<ServiceEntry, 'id' | 'created_at' | 'updated_at'> & { id?: string; created_at?: string; updated_at?: string }
         Update: Partial<Omit<ServiceEntry, 'id'>>
+        Relationships: []
       }
       deadlines: {
         Row: Deadline
         Insert: Omit<Deadline, 'id' | 'created_at'> & { id?: string; created_at?: string }
         Update: Partial<Omit<Deadline, 'id'>>
+        Relationships: []
       }
       audit_log: {
         Row: AuditLogEntry
         Insert: Omit<AuditLogEntry, 'id' | 'created_at'> & { id?: string; created_at?: string }
         Update: never
+        Relationships: []
       }
       push_subscriptions: {
-        Row: PushSubscription
-        Insert: Omit<PushSubscription, 'id' | 'created_at'> & { id?: string; created_at?: string }
-        Update: Partial<Omit<PushSubscription, 'id'>>
+        Row: PushSubscriptionRow
+        Insert: Omit<PushSubscriptionRow, 'id' | 'created_at'> & { id?: string; created_at?: string }
+        Update: Partial<Omit<PushSubscriptionRow, 'id'>>
+        Relationships: []
       }
       notification_settings: {
         Row: NotificationSettings
         Insert: Omit<NotificationSettings, 'id'> & { id?: string }
         Update: Partial<Omit<NotificationSettings, 'id'>>
+        Relationships: []
       }
     }
     Views: Record<string, never>
@@ -113,5 +119,6 @@ export type Database = {
       deadline_type: DeadlineType
       audit_action: AuditAction
     }
+    CompositeTypes: Record<string, never>
   }
 }
