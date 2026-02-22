@@ -1,9 +1,10 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Calendar, Wrench } from 'lucide-react'
+import { Plus, Search, Calendar, Wrench, Pencil } from 'lucide-react'
 import { useAssets } from '../hooks/useAssets'
 import AssetTypeBadge from '../components/AssetTypeBadge'
-import type { AssetType } from '../types/database'
+import AssetFormModal from '../components/AssetFormModal'
+import type { Asset, AssetType } from '../types/database'
 
 const typeFilters: { label: string; value: AssetType | null }[] = [
   { label: 'Wszystkie', value: null },
@@ -16,8 +17,15 @@ export default function AssetsPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<AssetType | null>(null)
-  const [showAddModal, setShowAddModal] = useState(false)
-  const { assets, loading, error } = useAssets({ search, typeFilter })
+  const [modalAsset, setModalAsset] = useState<Asset | null | undefined>(undefined)
+  const { assets, loading, error, refetch } = useAssets({ search, typeFilter })
+
+  const openCreate = () => setModalAsset(null)
+  const openEdit = (asset: Asset, e: React.MouseEvent) => {
+    e.stopPropagation()
+    setModalAsset(asset)
+  }
+  const closeModal = () => setModalAsset(undefined)
 
   return (
     <div>
@@ -28,7 +36,7 @@ export default function AssetsPage() {
           <p className="mt-1 text-sm text-slate-500">Pojazdy, sprzęt i infrastruktura.</p>
         </div>
         <button
-          onClick={() => setShowAddModal(true)}
+          onClick={openCreate}
           className="inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2.5 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400 active:bg-amber-600"
         >
           <Plus className="h-4 w-4" />
@@ -88,7 +96,7 @@ export default function AssetsPage() {
           <p className="mt-4 text-sm font-medium text-slate-900">Brak zasobów</p>
           <p className="mt-1 text-sm text-slate-500">Dodaj pierwszy zasób, aby rozpocząć.</p>
           <button
-            onClick={() => setShowAddModal(true)}
+            onClick={openCreate}
             className="mt-4 inline-flex items-center gap-2 rounded-lg bg-amber-500 px-4 py-2 text-sm font-medium text-slate-900 transition-colors hover:bg-amber-400"
           >
             <Plus className="h-4 w-4" />
@@ -109,6 +117,7 @@ export default function AssetsPage() {
                   <th className="px-4 py-3 text-left font-medium text-slate-500">Typ</th>
                   <th className="px-4 py-3 text-left font-medium text-slate-500">Następny termin</th>
                   <th className="px-4 py-3 text-left font-medium text-slate-500">Ostatni serwis</th>
+                  <th className="w-10 px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody>
@@ -140,6 +149,14 @@ export default function AssetsPage() {
                         <span className="text-slate-400">&mdash;</span>
                       )}
                     </td>
+                    <td className="px-4 py-3">
+                      <button
+                        onClick={(e) => openEdit(asset, e)}
+                        className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -159,7 +176,15 @@ export default function AssetsPage() {
                     <p className="font-medium text-slate-900">{asset.name}</p>
                     <p className="mt-0.5 font-mono text-xs text-slate-500">{asset.identifier}</p>
                   </div>
-                  <AssetTypeBadge type={asset.type} />
+                  <div className="flex items-center gap-2">
+                    <AssetTypeBadge type={asset.type} />
+                    <button
+                      onClick={(e) => openEdit(asset, e)}
+                      className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </button>
+                  </div>
                 </div>
                 <div className="mt-3 flex gap-4 text-xs text-slate-500">
                   {asset.next_deadline_date && (
@@ -181,16 +206,13 @@ export default function AssetsPage() {
         </>
       )}
 
-      {/* Modal placeholder — will be wired in Task 9 */}
-      {showAddModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-          onClick={() => setShowAddModal(false)}
-        >
-          <div className="rounded-xl bg-white p-6 text-sm text-slate-600" onClick={(e) => e.stopPropagation()}>
-            Formularz dodawania zasobu (wkrótce)
-          </div>
-        </div>
+      {/* Asset form modal */}
+      {modalAsset !== undefined && (
+        <AssetFormModal
+          asset={modalAsset}
+          onClose={closeModal}
+          onSaved={refetch}
+        />
       )}
     </div>
   )
