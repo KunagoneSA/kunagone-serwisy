@@ -9,8 +9,6 @@ import AuditLogPage from './pages/AuditLogPage'
 import SettingsPage from './pages/SettingsPage'
 import AssetDetailPage from './pages/AssetDetailPage'
 
-const basename = import.meta.env.BASE_URL.replace(/\/$/, '')
-
 export const router = createBrowserRouter([
   {
     element: <RootLayout />,
@@ -36,4 +34,4 @@ export const router = createBrowserRouter([
       },
     ],
   },
-], { basename })
+])
