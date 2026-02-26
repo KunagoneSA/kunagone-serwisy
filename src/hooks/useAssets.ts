@@ -27,20 +27,10 @@ export function useAssets(options: UseAssetsOptions = {}) {
     setError(null)
 
     try {
-      let query = supabase
-        .from('assets')
-        .select('*')
-        .order('name')
-
-      if (typeFilter) {
-        query = query.eq('type', typeFilter)
-      }
-
-      if (search) {
-        query = query.or(`name.ilike.%${search}%,identifier.ilike.%${search}%`)
-      }
-
-      const { data, error: fetchError } = await query
+      const { data, error: fetchError } = await supabase.rpc('search_assets', {
+        p_search: search || null,
+        p_type_filter: typeFilter || null,
+      })
 
       if (fetchError) throw fetchError
 

@@ -55,7 +55,13 @@ export interface AuditLogEntry {
   old_data: Record<string, unknown> | null
   new_data: Record<string, unknown> | null
   user_id: string | null
+  user_email: string | null
   created_at: string
+}
+
+export interface AuditUser {
+  user_id: string
+  user_email: string
 }
 
 export interface PushSubscriptionRow {

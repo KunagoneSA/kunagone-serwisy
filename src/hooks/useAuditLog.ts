@@ -1,11 +1,12 @@
 import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../lib/supabase'
-import type { AuditLogEntry } from '../types/database'
+import type { AuditLogEntry, AuditUser } from '../types/database'
 
 const PAGE_SIZE = 20
 
 interface UseAuditLogOptions {
   tableFilter?: string | null
+  userFilter?: string | null
   dateFrom?: string
   dateTo?: string
 }
@@ -17,7 +18,7 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
   const [hasMore, setHasMore] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const { tableFilter, dateFrom, dateTo } = options
+  const { tableFilter, userFilter, dateFrom, dateTo } = options
 
   const fetchEntries = useCallback(async (offset = 0, append = false) => {
     if (offset === 0) setLoading(true)
@@ -25,25 +26,14 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
     setError(null)
 
     try {
-      let query = supabase
-        .from('audit_log')
-        .select('*')
-        .order('created_at', { ascending: false })
-        .range(offset, offset + PAGE_SIZE - 1)
-
-      if (tableFilter) {
-        query = query.eq('table_name', tableFilter)
-      }
-
-      if (dateFrom) {
-        query = query.gte('created_at', `${dateFrom}T00:00:00`)
-      }
-
-      if (dateTo) {
-        query = query.lte('created_at', `${dateTo}T23:59:59`)
-      }
-
-      const { data, error: fetchError } = await query
+      const { data, error: fetchError } = await supabase.rpc('get_audit_log', {
+        p_table_filter: tableFilter || null,
+        p_user_filter: userFilter || null,
+        p_date_from: dateFrom ? `${dateFrom}T00:00:00` : null,
+        p_date_to: dateTo ? `${dateTo}T23:59:59` : null,
+        p_limit: PAGE_SIZE,
+        p_offset: offset,
+      })
 
       if (fetchError) throw fetchError
 
@@ -61,7 +51,7 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
       setLoading(false)
       setLoadingMore(false)
     }
-  }, [tableFilter, dateFrom, dateTo])
+  }, [tableFilter, userFilter, dateFrom, dateTo])
 
   useEffect(() => {
     fetchEntries(0)
@@ -74,4 +64,16 @@ export function useAuditLog(options: UseAuditLogOptions = {}) {
   }
 
   return { entries, loading, loadingMore, hasMore, error, loadMore }
+}
+
+export function useAuditUsers() {
+  const [users, setUsers] = useState<AuditUser[]>([])
+
+  useEffect(() => {
+    supabase.rpc('get_audit_users').then(({ data }) => {
+      if (data) setUsers(data as AuditUser[])
+    })
+  }, [])
+
+  return users
 }
