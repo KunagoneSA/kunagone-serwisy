@@ -140,7 +140,7 @@ export default function DashboardPage() {
           ) : (
             <div className="space-y-2">
               {stats.upcomingDeadlines.map((d) => {
-                const urgency = getUrgencyClasses(d.due_date)
+                const urgency = d.due_date ? getUrgencyClasses(d.due_date) : { dot: 'bg-blue-400', bg: 'bg-blue-50 border-blue-100' }
                 return (
                   <div
                     key={d.id}
@@ -154,7 +154,11 @@ export default function DashboardPage() {
                         <span className="shrink-0 text-xs text-slate-500">{d.asset_name}</span>
                       </div>
                       <p className="text-xs text-slate-500">
-                        {new Date(d.due_date).toLocaleDateString('pl-PL')} &middot; {formatDaysLabel(d.due_date)}
+                        {d.due_date ? (
+                          <>{new Date(d.due_date).toLocaleDateString('pl-PL')} &middot; {formatDaysLabel(d.due_date)}</>
+                        ) : (
+                          <>termin przebiegowy</>
+                        )}
                       </p>
                     </div>
                   </div>
