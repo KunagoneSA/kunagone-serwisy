@@ -63,6 +63,14 @@ export default function ServiceEntryFormModal({ assetId, entry, onClose, onSaved
         if (insertError) throw insertError
       }
 
+      // Update asset's current_mileage if mileage was provided
+      if (payload.mileage) {
+        await supabase
+          .from('assets')
+          .update({ current_mileage: payload.mileage })
+          .eq('id', assetId)
+      }
+
       onSaved()
       onClose()
     } catch (err) {

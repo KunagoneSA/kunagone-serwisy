@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench, Gauge } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useAsset } from '../hooks/useAsset'
@@ -96,6 +96,12 @@ export default function AssetDetailPage() {
             <AssetTypeBadge type={asset.type} />
           </div>
           <p className="mt-1 font-mono text-sm text-slate-500">{asset.identifier}</p>
+          {asset.current_mileage != null && (
+            <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2.5 py-1 text-sm font-medium text-slate-700">
+              <Gauge className="h-4 w-4 text-slate-500" />
+              Aktualny przebieg: {asset.current_mileage.toLocaleString('pl-PL')} km
+            </div>
+          )}
           {asset.notes && (
             <p className="mt-2 text-sm text-slate-600">{asset.notes}</p>
           )}

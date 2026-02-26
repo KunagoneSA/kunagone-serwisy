@@ -10,6 +10,7 @@ export interface Asset {
   type: AssetType
   notes: string | null
   metadata: Record<string, string>
+  current_mileage: number | null
   created_at: string
   created_by: string | null
 }
@@ -34,7 +35,8 @@ export interface Deadline {
   asset_id: string
   type: DeadlineType
   title: string
-  due_date: string
+  due_date: string | null
+  due_mileage: number | null
   is_recurring: boolean
   recurrence_rule: string | null
   notify_days_before: number[]

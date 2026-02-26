@@ -1,4 +1,4 @@
-import { CalendarPlus, Check, Pencil } from 'lucide-react'
+import { CalendarPlus, Check, Pencil, Gauge } from 'lucide-react'
 import type { Deadline, DeadlineType } from '../types/database'
 
 const typeLabels: Record<DeadlineType, string> = {
@@ -17,10 +17,11 @@ const typeColors: Record<DeadlineType, string> = {
   other: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 
-function getUrgencyColor(dueDate: string, completed: boolean): string {
-  if (completed) return 'border-l-slate-300'
+function getUrgencyColor(deadline: Deadline): string {
+  if (deadline.completed) return 'border-l-slate-300'
+  if (!deadline.due_date) return 'border-l-blue-400' // mileage-only
   const days = Math.ceil(
-    (new Date(dueDate).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
+    (new Date(deadline.due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   )
   if (days <= 7) return 'border-l-red-500'
   if (days <= 30) return 'border-l-amber-400'
@@ -38,7 +39,8 @@ function formatDaysRemaining(dueDate: string): string {
   return `za ${days} dni`
 }
 
-function buildCalendarUrl(deadline: Deadline, assetName?: string): string {
+function buildCalendarUrl(deadline: Deadline, assetName?: string): string | null {
+  if (!deadline.due_date) return null
   const date = deadline.due_date.replace(/-/g, '')
   const title = encodeURIComponent(`${deadline.title}${assetName ? ` - ${assetName}` : ''}`)
   const details = encodeURIComponent(`Typ: ${typeLabels[deadline.type]}`)
@@ -53,7 +55,8 @@ interface DeadlineCardProps {
 }
 
 export default function DeadlineCard({ deadline, assetName, onMarkDone, onEdit }: DeadlineCardProps) {
-  const urgencyColor = getUrgencyColor(deadline.due_date, deadline.completed)
+  const urgencyColor = getUrgencyColor(deadline)
+  const calendarUrl = buildCalendarUrl(deadline, assetName)
 
   return (
     <div
@@ -76,11 +79,21 @@ export default function DeadlineCard({ deadline, assetName, onMarkDone, onEdit }
             )}
           </div>
           <p className="mt-1.5 text-sm font-medium text-slate-900">{deadline.title}</p>
-          <div className="mt-1 flex items-center gap-3 text-xs text-slate-500">
-            <span>{new Date(deadline.due_date).toLocaleDateString('pl-PL')}</span>
-            {!deadline.completed && (
-              <span className="font-medium">
-                {formatDaysRemaining(deadline.due_date)}
+          <div className="mt-1 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
+            {deadline.due_date && (
+              <>
+                <span>{new Date(deadline.due_date).toLocaleDateString('pl-PL')}</span>
+                {!deadline.completed && (
+                  <span className="font-medium">
+                    {formatDaysRemaining(deadline.due_date)}
+                  </span>
+                )}
+              </>
+            )}
+            {deadline.due_mileage != null && (
+              <span className="inline-flex items-center gap-1 font-medium text-blue-600">
+                <Gauge className="h-3 w-3" />
+                {deadline.due_mileage.toLocaleString('pl-PL')} km
               </span>
             )}
             {deadline.is_recurring && deadline.recurrence_rule && (
@@ -99,15 +112,17 @@ export default function DeadlineCard({ deadline, assetName, onMarkDone, onEdit }
               <Check className="h-4 w-4" />
             </button>
           )}
-          <a
-            href={buildCalendarUrl(deadline, assetName)}
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Dodaj do Google Calendar"
-            className="rounded-md p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
-          >
-            <CalendarPlus className="h-4 w-4" />
-          </a>
+          {calendarUrl && (
+            <a
+              href={calendarUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              title="Dodaj do Google Calendar"
+              className="rounded-md p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
+            >
+              <CalendarPlus className="h-4 w-4" />
+            </a>
+          )}
           <button
             onClick={() => onEdit(deadline)}
             title="Edytuj"

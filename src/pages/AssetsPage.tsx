@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Plus, Search, Calendar, Wrench, Pencil } from 'lucide-react'
+import { Plus, Search, Calendar, Wrench, Pencil, Gauge } from 'lucide-react'
 import { useAssets } from '../hooks/useAssets'
 import AssetTypeBadge from '../components/AssetTypeBadge'
 import AssetFormModal from '../components/AssetFormModal'
@@ -118,12 +118,13 @@ export default function AssetsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-slate-100 bg-slate-50/50">
-                  <th className="px-4 py-3 text-left font-medium text-slate-500">Nazwa</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-500">Identyfikator</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-500">Typ</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-500">Następny termin</th>
-                  <th className="px-4 py-3 text-left font-medium text-slate-500">Ostatni serwis</th>
-                  <th className="w-10 px-4 py-3"></th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Nazwa</th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Identyfikator</th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Typ</th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Przebieg</th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Następny termin</th>
+                  <th className="px-3 py-1.5 text-left font-medium text-slate-500">Ostatni serwis</th>
+                  <th className="w-8 px-2 py-1.5"></th>
                 </tr>
               </thead>
               <tbody>
@@ -133,29 +134,48 @@ export default function AssetsPage() {
                     onClick={() => navigate(`/zasoby/${asset.id}`)}
                     className="cursor-pointer border-b border-slate-50 transition-colors hover:bg-slate-50/80 last:border-0"
                   >
-                    <td className="px-4 py-3 font-medium text-slate-900">{asset.name}</td>
-                    <td className="px-4 py-3 font-mono text-xs text-slate-600">{asset.identifier}</td>
-                    <td className="px-4 py-3">
+                    <td className="px-3 py-1 font-medium text-slate-900">{asset.name}</td>
+                    <td className="px-3 py-1 font-mono text-xs text-slate-600">{asset.identifier}</td>
+                    <td className="px-3 py-1">
                       <AssetTypeBadge type={asset.type} />
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
-                      {asset.next_deadline_date ? (
-                        <span className="inline-flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-slate-400" />
-                          {new Date(asset.next_deadline_date).toLocaleDateString('pl-PL')}
+                    <td className="px-3 py-1 text-slate-600">
+                      {asset.current_mileage != null ? (
+                        <span className="inline-flex items-center gap-1">
+                          <Gauge className="h-3.5 w-3.5 text-slate-400" />
+                          {asset.current_mileage.toLocaleString('pl-PL')} km
                         </span>
                       ) : (
                         <span className="text-slate-400">&mdash;</span>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-slate-600">
+                    <td className="px-3 py-1 text-slate-600">
+                      <div className="flex flex-col">
+                        {asset.next_deadline_date ? (
+                          <span className="inline-flex items-center gap-1">
+                            <Calendar className="h-3.5 w-3.5 text-slate-400" />
+                            {new Date(asset.next_deadline_date).toLocaleDateString('pl-PL')}
+                          </span>
+                        ) : null}
+                        {asset.next_deadline_mileage != null ? (
+                          <span className="inline-flex items-center gap-1 text-xs text-blue-600">
+                            <Gauge className="h-3 w-3" />
+                            {asset.next_deadline_mileage.toLocaleString('pl-PL')} km
+                          </span>
+                        ) : null}
+                        {!asset.next_deadline_date && asset.next_deadline_mileage == null && (
+                          <span className="text-slate-400">&mdash;</span>
+                        )}
+                      </div>
+                    </td>
+                    <td className="px-3 py-1 text-slate-600">
                       {asset.last_service_date ? (
                         new Date(asset.last_service_date).toLocaleDateString('pl-PL')
                       ) : (
                         <span className="text-slate-400">&mdash;</span>
                       )}
                     </td>
-                    <td className="px-4 py-3">
+                    <td className="px-2 py-1">
                       <button
                         onClick={(e) => openEdit(asset, e)}
                         className="rounded-md p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
@@ -170,12 +190,12 @@ export default function AssetsPage() {
           </div>
 
           {/* Mobile cards */}
-          <div className="mt-6 space-y-3 md:hidden">
+          <div className="mt-6 space-y-2 md:hidden">
             {assets.map((asset) => (
               <div
                 key={asset.id}
                 onClick={() => navigate(`/zasoby/${asset.id}`)}
-                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-4 transition-colors active:bg-slate-50"
+                className="cursor-pointer rounded-xl border border-slate-200 bg-white p-3 transition-colors active:bg-slate-50"
               >
                 <div className="flex items-start justify-between">
                   <div>
@@ -192,7 +212,13 @@ export default function AssetsPage() {
                     </button>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-4 text-xs text-slate-500">
+                {asset.current_mileage != null && (
+                  <div className="mt-2 inline-flex items-center gap-1.5 rounded-md bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-700">
+                    <Gauge className="h-3 w-3" />
+                    {asset.current_mileage.toLocaleString('pl-PL')} km
+                  </div>
+                )}
+                <div className="mt-2 flex gap-4 text-xs text-slate-500">
                   {asset.next_deadline_date && (
                     <span className="inline-flex items-center gap-1">
                       <Calendar className="h-3 w-3" />

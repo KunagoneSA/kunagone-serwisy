@@ -18,7 +18,7 @@ export function useDeadlines(assetId: string | undefined) {
         .select('*')
         .eq('asset_id', assetId)
         .order('completed')
-        .order('due_date')
+        .order('due_date', { nullsFirst: false })
 
       if (fetchError) throw fetchError
       setDeadlines((data ?? []) as Deadline[])
