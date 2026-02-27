@@ -1,7 +1,8 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Truck, History, Settings, Menu, X } from 'lucide-react'
+import { LayoutDashboard, Truck, History, Settings, Menu, X, LogOut, User } from 'lucide-react'
 import { useOverdueCount } from '../hooks/useOverdueCount'
+import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Panel główny', showBadge: true },
@@ -19,9 +20,16 @@ function NavBadge({ count }: { count: number }) {
   )
 }
 
+function emailLabel(email?: string) {
+  if (!email) return ''
+  const at = email.indexOf('@')
+  return at > 0 ? email.slice(0, at) : email
+}
+
 export default function AppLayout() {
   const [mobileOpen, setMobileOpen] = useState(false)
   const { count: overdueCount } = useOverdueCount()
+  const { user, signOut } = useAuth()
 
   const renderNavLink = (
     { to, icon: Icon, label, showBadge }: typeof navItems[number],
@@ -59,8 +67,23 @@ export default function AppLayout() {
         <nav className="flex-1 py-4 px-3 space-y-1">
           {navItems.map((item) => renderNavLink(item))}
         </nav>
-        <div className="border-t border-red-700 px-4 py-3">
-          <p className="text-[11px] text-red-300/50 tracking-wide uppercase">Kunagone S.A.</p>
+        <div className="border-t border-red-700 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-900/60">
+              <User className="h-3.5 w-3.5 text-red-200" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-red-100 truncate">{emailLabel(user?.email)}</p>
+              <p className="text-[10px] text-red-300/50">Kunagone S.A.</p>
+            </div>
+            <button
+              onClick={signOut}
+              title="Wyloguj"
+              className="rounded-md p-1 text-red-300/50 hover:text-red-100 hover:bg-red-900/40 transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
       </aside>
 
@@ -74,7 +97,7 @@ export default function AppLayout() {
 
       {/* Mobile sidebar */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 bg-red-800 transform transition-transform duration-200 ease-out md:hidden ${
+        className={`fixed inset-y-0 left-0 z-50 w-64 flex flex-col bg-red-800 transform transition-transform duration-200 ease-out md:hidden ${
           mobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
@@ -92,9 +115,27 @@ export default function AppLayout() {
             <X className="h-5 w-5" />
           </button>
         </div>
-        <nav className="py-4 px-3 space-y-1">
+        <nav className="flex-1 py-4 px-3 space-y-1">
           {navItems.map((item) => renderNavLink(item, () => setMobileOpen(false)))}
         </nav>
+        <div className="border-t border-red-700 px-3 py-2.5">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-red-900/60">
+              <User className="h-3.5 w-3.5 text-red-200" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-xs font-medium text-red-100 truncate">{emailLabel(user?.email)}</p>
+              <p className="text-[10px] text-red-300/50">Kunagone S.A.</p>
+            </div>
+            <button
+              onClick={signOut}
+              title="Wyloguj"
+              className="rounded-md p-1 text-red-300/50 hover:text-red-100 hover:bg-red-900/40 transition-colors"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+            </button>
+          </div>
+        </div>
       </aside>
 
       {/* Main content */}

@@ -138,29 +138,44 @@ export default function DashboardPage() {
               <p className="text-sm text-slate-500">Brak nadchodzących terminów.</p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-1">
               {stats.upcomingDeadlines.map((d) => {
                 const urgency = d.due_date ? getUrgencyClasses(d.due_date) : { dot: 'bg-blue-400', bg: 'bg-blue-50 border-blue-100' }
+                const daysLabel = d.due_date ? formatDaysLabel(d.due_date) : null
+                const daysCount = d.due_date ? Math.ceil((new Date(d.due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)) : null
                 return (
                   <div
                     key={d.id}
                     onClick={() => navigate(`/zasoby/${d.asset_id}`)}
-                    className={`flex items-center gap-3 rounded-lg border p-3 cursor-pointer transition-colors hover:shadow-sm ${urgency.bg}`}
+                    className={`flex items-center gap-2.5 rounded-lg border px-3 py-2 cursor-pointer transition-colors hover:shadow-sm ${urgency.bg}`}
                   >
-                    <div className={`h-2.5 w-2.5 shrink-0 rounded-full ${urgency.dot}`} />
+                    <div className={`h-2 w-2 shrink-0 rounded-full ${urgency.dot}`} />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-baseline gap-2">
-                        <p className="text-sm font-medium text-slate-900 truncate">{d.title}</p>
-                        <span className="shrink-0 text-xs text-slate-500">{d.asset_name}</span>
+                      <div className="flex items-baseline gap-1.5">
+                        <p className="text-xs font-medium text-slate-900 truncate">{d.title}</p>
+                        <span className="shrink-0 text-[11px] text-slate-400">{d.asset_name}</span>
                       </div>
-                      <p className="text-xs text-slate-500">
-                        {d.due_date ? (
-                          <>{new Date(d.due_date).toLocaleDateString('pl-PL')} &middot; {formatDaysLabel(d.due_date)}</>
-                        ) : (
-                          <>termin przebiegowy</>
-                        )}
-                      </p>
                     </div>
+                    {d.due_date ? (
+                      <div className="flex items-center gap-2 shrink-0">
+                        <span className="text-[11px] text-slate-400 tabular-nums">
+                          {new Date(d.due_date).toLocaleDateString('pl-PL')}
+                        </span>
+                        <span className={`inline-flex items-center rounded-md px-1.5 py-0.5 text-[11px] font-bold leading-none ${
+                          daysCount != null && daysCount < 0
+                            ? 'bg-red-500 text-white'
+                            : daysCount != null && daysCount <= 7
+                              ? 'bg-red-100 text-red-700'
+                              : daysCount != null && daysCount <= 30
+                                ? 'bg-amber-100 text-amber-700'
+                                : 'bg-emerald-100 text-emerald-700'
+                        }`}>
+                          {daysLabel}
+                        </span>
+                      </div>
+                    ) : (
+                      <span className="text-[11px] text-blue-500 shrink-0">przebiegowy</span>
+                    )}
                   </div>
                 )
               })}

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench, Gauge } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench, Gauge, Shield, X } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useAsset } from '../hooks/useAsset'
@@ -13,6 +13,7 @@ import ServiceEntryCard from '../components/ServiceEntryCard'
 import ServiceEntryFormModal from '../components/ServiceEntryFormModal'
 import DeadlineFormModal from '../components/DeadlineFormModal'
 import { Skeleton } from '../components/Skeleton'
+import { useAssetGuardians, useAllUsers } from '../hooks/useAssetGuardians'
 import type { Deadline, ServiceEntry } from '../types/database'
 
 export default function AssetDetailPage() {
@@ -22,6 +23,9 @@ export default function AssetDetailPage() {
   const { asset, loading, error, refetch: refetchAsset } = useAsset(id)
   const { entries, loading: entriesLoading, refetch: refetchEntries } = useServiceEntries(id)
   const { deadlines, loading: deadlinesLoading, refetch: refetchDeadlines } = useDeadlines(id)
+
+  const { guardians, setGuardian, removeGuardian } = useAssetGuardians(id)
+  const allUsers = useAllUsers()
 
   const [showAssetModal, setShowAssetModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState<ServiceEntry | null | undefined>(undefined)
@@ -89,11 +93,18 @@ export default function AssetDetailPage() {
         Zasoby
       </button>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-        <div>
-          <div className="flex items-center gap-3">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-3 flex-wrap">
             <h1 className="text-2xl font-bold tracking-tight text-slate-900">{asset.name}</h1>
             <AssetTypeBadge type={asset.type} />
+            <button
+              onClick={() => setShowAssetModal(true)}
+              className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Edytuj
+            </button>
           </div>
           <p className="mt-1 font-mono text-sm text-slate-500">{asset.identifier}</p>
           {asset.current_mileage != null && (
@@ -106,13 +117,50 @@ export default function AssetDetailPage() {
             <p className="mt-2 text-sm text-slate-600">{asset.notes}</p>
           )}
         </div>
-        <button
-          onClick={() => setShowAssetModal(true)}
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50"
-        >
-          <Pencil className="h-4 w-4" />
-          Edytuj
-        </button>
+
+        {/* Guardians - compact panel on the right */}
+        <div className="w-full lg:w-64 shrink-0 rounded-xl border border-slate-200 bg-white p-3">
+          <h3 className="flex items-center gap-1.5 text-[11px] font-medium uppercase tracking-wide text-slate-400 mb-2">
+            <Shield className="h-3 w-3" />
+            Opiekunowie
+          </h3>
+          <div className="space-y-1.5">
+            {[1, 2, 3].map((pos) => {
+              const guardian = guardians.find((g) => g.position === pos)
+              const assignedUserIds = guardians.map((g) => g.user_id)
+              return (
+                <div key={pos} className="flex items-center gap-1.5">
+                  <span className="text-[10px] text-slate-300 w-3 shrink-0">{pos}.</span>
+                  {guardian ? (
+                    <div className="flex items-center gap-1 flex-1 min-w-0">
+                      <span className="text-xs text-slate-700 truncate">{guardian.user_name}</span>
+                      <button
+                        onClick={() => removeGuardian(pos)}
+                        className="ml-auto shrink-0 rounded-md p-0.5 text-slate-300 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ) : (
+                    <select
+                      value=""
+                      onChange={(e) => { if (e.target.value) setGuardian(pos, e.target.value) }}
+                      className="flex-1 rounded border border-dashed border-slate-200 px-1.5 py-0.5 text-[11px] text-slate-400 focus:border-amber-400 focus:outline-none"
+                    >
+                      <option value="">Wybierz...</option>
+                      {allUsers
+                        .filter((u) => !assignedUserIds.includes(u.id))
+                        .map((u) => (
+                          <option key={u.id} value={u.id}>{u.full_name}</option>
+                        ))
+                      }
+                    </select>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        </div>
       </div>
 
       {/* Metadata */}
