@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Plus, Search, Calendar, Wrench, Pencil, Gauge, Car, Hammer, Building2, LayoutGrid } from 'lucide-react'
 import { useAssets } from '../hooks/useAssets'
@@ -17,9 +17,16 @@ const typeFilters: { label: string; value: AssetType | null; icon: typeof Car }[
 export default function AssetsPage() {
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [typeFilter, setTypeFilter] = useState<AssetType | null>(null)
   const [modalAsset, setModalAsset] = useState<Asset | null | undefined>(undefined)
-  const { assets, loading, error, refetch } = useAssets({ search, typeFilter })
+
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(search), 300)
+    return () => clearTimeout(timer)
+  }, [search])
+
+  const { assets, loading, error, refetch } = useAssets({ search: debouncedSearch, typeFilter })
 
   const openCreate = () => setModalAsset(null)
   const openEdit = (asset: Asset, e: React.MouseEvent) => {

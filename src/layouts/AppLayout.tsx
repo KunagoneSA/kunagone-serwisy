@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import { NavLink, Outlet } from 'react-router-dom'
-import { LayoutDashboard, Truck, History, Settings, Menu, X, LogOut, User } from 'lucide-react'
+import { LayoutDashboard, Truck, History, Settings, Menu, X, LogOut, User, Gauge } from 'lucide-react'
 import { useOverdueCount } from '../hooks/useOverdueCount'
 import { useAuth } from '../contexts/AuthContext'
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Panel główny', showBadge: true },
   { to: '/zasoby', icon: Truck, label: 'Zasoby', showBadge: false },
+  { to: '/przebieg', icon: Gauge, label: 'Zgłoś przebieg', showBadge: false },
   { to: '/historia', icon: History, label: 'Historia zmian', showBadge: false },
   { to: '/ustawienia', icon: Settings, label: 'Ustawienia', showBadge: false },
 ] as const

@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench, Gauge, Shield, X } from 'lucide-react'
+import { ArrowLeft, Pencil, Plus, CalendarClock, Wrench, Gauge, Shield, X, User, Image, Trash2 } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../contexts/AuthContext'
 import { useAsset } from '../hooks/useAsset'
@@ -14,6 +14,8 @@ import ServiceEntryFormModal from '../components/ServiceEntryFormModal'
 import DeadlineFormModal from '../components/DeadlineFormModal'
 import { Skeleton } from '../components/Skeleton'
 import { useAssetGuardians, useAllUsers } from '../hooks/useAssetGuardians'
+import { useMileageReports } from '../hooks/useMileageReports'
+import { supabase as supabaseClient } from '../lib/supabase'
 import type { Deadline, ServiceEntry } from '../types/database'
 
 export default function AssetDetailPage() {
@@ -26,10 +28,34 @@ export default function AssetDetailPage() {
 
   const { guardians, setGuardian, removeGuardian } = useAssetGuardians(id)
   const allUsers = useAllUsers()
+  const { reports: mileageReports, loading: mileageLoading, refetch: refetchMileage } = useMileageReports(id)
+  const [expandedPhoto, setExpandedPhoto] = useState<string | null>(null)
+  const [editingMileageId, setEditingMileageId] = useState<string | null>(null)
+  const [editingMileageValue, setEditingMileageValue] = useState('')
+  const [editingMileageDate, setEditingMileageDate] = useState('')
 
   const [showAssetModal, setShowAssetModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState<ServiceEntry | null | undefined>(undefined)
   const [editingDeadline, setEditingDeadline] = useState<Deadline | null | undefined>(undefined)
+
+  const handleDeleteMileage = async (reportId: string) => {
+    await supabase.from('mileage_reports').delete().eq('id', reportId)
+    refetchMileage()
+    refetchAsset()
+  }
+
+  const handleEditMileage = async (reportId: string) => {
+    const val = parseInt(editingMileageValue, 10)
+    if (isNaN(val) || val <= 0) return
+    const update: Record<string, unknown> = { mileage: val }
+    if (editingMileageDate) {
+      update.created_at = new Date(editingMileageDate).toISOString()
+    }
+    await supabase.from('mileage_reports').update(update).eq('id', reportId)
+    setEditingMileageId(null)
+    refetchMileage()
+    refetchAsset()
+  }
 
   const handleMarkDone = async (deadline: Deadline) => {
     await supabase
@@ -179,10 +205,10 @@ export default function AssetDetailPage() {
       )}
 
       {/* Deadlines section */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <CalendarClock className="h-5 w-5 text-slate-400" />
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <CalendarClock className="h-4 w-4 text-slate-400" />
             Terminy
           </h2>
           <button
@@ -195,23 +221,19 @@ export default function AssetDetailPage() {
         </div>
 
         {deadlinesLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-1.5">
             {Array.from({ length: 2 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
-                <div className="flex items-center gap-3">
-                  <Skeleton className="h-5 w-16 rounded-md" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-                <Skeleton className="mt-2 h-3 w-24" />
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-2">
+                <Skeleton className="h-4 w-40" />
               </div>
             ))}
           </div>
         ) : deadlines.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-            <p className="text-sm text-slate-500">Brak terminów. Dodaj pierwszy termin.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-5 text-center">
+            <p className="text-xs text-slate-500">Brak terminów. Dodaj pierwszy termin.</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-1.5">
             {deadlines.map((d) => (
               <DeadlineCard
                 key={d.id}
@@ -226,10 +248,10 @@ export default function AssetDetailPage() {
       </div>
 
       {/* Service history section */}
-      <div className="mt-8">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="flex items-center gap-2 text-lg font-semibold text-slate-900">
-            <Wrench className="h-5 w-5 text-slate-400" />
+      <div className="mt-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+            <Wrench className="h-4 w-4 text-slate-400" />
             Historia serwisów
           </h2>
           <button
@@ -242,17 +264,16 @@ export default function AssetDetailPage() {
         </div>
 
         {entriesLoading ? (
-          <div className="space-y-3">
+          <div className="space-y-1.5">
             {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="rounded-xl border border-slate-200 bg-white p-4">
+              <div key={i} className="rounded-lg border border-slate-200 bg-white p-2">
                 <Skeleton className="h-4 w-44" />
-                <Skeleton className="mt-2 h-3 w-28" />
               </div>
             ))}
           </div>
         ) : entries.length === 0 ? (
-          <div className="rounded-xl border border-dashed border-slate-200 bg-slate-50/50 p-8 text-center">
-            <p className="text-sm text-slate-500">Brak wpisów serwisowych. Dodaj pierwszy wpis.</p>
+          <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-5 text-center">
+            <p className="text-xs text-slate-500">Brak wpisów serwisowych. Dodaj pierwszy wpis.</p>
           </div>
         ) : (
           <div className="ml-1">
@@ -266,6 +287,124 @@ export default function AssetDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Mileage history - only for vehicles, at the bottom */}
+      {asset.type === 'vehicle' && (
+        <div className="mt-6">
+          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 mb-2">
+            <Gauge className="h-4 w-4 text-slate-400" />
+            Historia przebiegów
+          </h2>
+
+          {mileageLoading ? (
+            <div className="space-y-1">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="rounded-lg border border-slate-200 bg-white p-2">
+                  <Skeleton className="h-3 w-32" />
+                </div>
+              ))}
+            </div>
+          ) : mileageReports.length === 0 ? (
+            <div className="rounded-lg border border-dashed border-slate-200 bg-slate-50/50 p-5 text-center">
+              <p className="text-xs text-slate-500">Brak zgłoszeń przebiegu.</p>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {mileageReports.map((report) => {
+                const photoUrl = report.photo_path
+                  ? supabaseClient.storage.from('mileage-photos').getPublicUrl(report.photo_path).data.publicUrl
+                  : null
+                const isEditing = editingMileageId === report.id
+                return (
+                  <div key={report.id}>
+                    <div className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          {isEditing ? (
+                            <form
+                              onSubmit={(e) => { e.preventDefault(); handleEditMileage(report.id) }}
+                              className="flex items-center gap-1 flex-wrap"
+                            >
+                              <input
+                                type="number"
+                                value={editingMileageValue}
+                                onChange={(e) => setEditingMileageValue(e.target.value)}
+                                className="w-24 rounded border border-amber-300 px-1.5 py-0.5 text-xs font-semibold focus:outline-none focus:ring-1 focus:ring-amber-400"
+                                autoFocus
+                                placeholder="km"
+                              />
+                              <input
+                                type="date"
+                                value={editingMileageDate}
+                                onChange={(e) => setEditingMileageDate(e.target.value)}
+                                className="rounded border border-amber-300 px-1.5 py-0.5 text-xs focus:outline-none focus:ring-1 focus:ring-amber-400"
+                              />
+                              <button type="submit" className="rounded bg-amber-500 px-1.5 py-0.5 text-[10px] font-medium text-slate-900 hover:bg-amber-400">OK</button>
+                              <button type="button" onClick={() => setEditingMileageId(null)} className="text-[10px] text-slate-400 hover:text-slate-600">Anuluj</button>
+                            </form>
+                          ) : (
+                            <span className="text-xs font-semibold text-slate-900">
+                              {report.mileage.toLocaleString('pl-PL')} km
+                            </span>
+                          )}
+                          {photoUrl && (
+                            <button
+                              onClick={() => setExpandedPhoto(expandedPhoto === report.id ? null : report.id)}
+                              className="inline-flex items-center gap-0.5 rounded bg-blue-50 px-1 py-px text-[10px] font-medium text-blue-600 hover:bg-blue-100"
+                            >
+                              <Image className="h-2.5 w-2.5" />
+                              Foto
+                            </button>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
+                          <span>{new Date(report.created_at).toLocaleDateString('pl-PL')} {new Date(report.created_at).toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' })}</span>
+                          {report.reporter_name && (
+                            <>
+                              <span className="text-slate-200">·</span>
+                              <span className="inline-flex items-center gap-0.5">
+                                <User className="h-2.5 w-2.5" />
+                                {report.reporter_name}
+                              </span>
+                            </>
+                          )}
+                          {report.notes && (
+                            <>
+                              <span className="text-slate-200">·</span>
+                              <span className="truncate">{report.notes}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-0.5 shrink-0">
+                        <button
+                          onClick={() => { setEditingMileageId(report.id); setEditingMileageValue(String(report.mileage)); setEditingMileageDate(report.created_at.split('T')[0]) }}
+                          title="Edytuj"
+                          className="rounded-md p-1 text-slate-300 hover:bg-slate-100 hover:text-slate-600"
+                        >
+                          <Pencil className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteMileage(report.id)}
+                          title="Usuń"
+                          className="rounded-md p-1 text-slate-300 hover:bg-red-50 hover:text-red-500"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                    {expandedPhoto === report.id && photoUrl && (
+                      <div className="mt-1 rounded-lg border border-slate-200 bg-white p-1.5">
+                        <img src={photoUrl} alt="Zdjęcie licznika" className="w-full max-h-48 rounded object-contain" />
+                      </div>
+                    )}
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Modals */}
       {showAssetModal && (

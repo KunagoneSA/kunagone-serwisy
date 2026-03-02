@@ -32,19 +32,18 @@ export function useDashboardStats() {
       const today = new Date().toISOString().split('T')[0]
       const in90days = new Date(Date.now() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]
 
-      const [assetsResult, deadlinesResult, overdueResult, activityResult] = await Promise.all([
+      const [assetsResult, allDeadlinesResult, overdueResult, activityResult] = await Promise.all([
         // Total assets count
         supabase.from('assets').select('id', { count: 'exact', head: true }),
 
-        // Upcoming deadlines (next 90 days, not completed) with asset info
+        // All relevant deadlines: overdue + upcoming 90 days (single query)
         supabase
           .from('deadlines')
           .select('*, assets!inner(name, identifier)')
           .eq('completed', false)
-          .gte('due_date', today)
           .lte('due_date', in90days)
           .order('due_date')
-          .limit(20),
+          .limit(40),
 
         // Overdue count
         supabase
@@ -62,18 +61,9 @@ export function useDashboardStats() {
       ])
 
       if (assetsResult.error) throw assetsResult.error
-      if (deadlinesResult.error) throw deadlinesResult.error
+      if (allDeadlinesResult.error) throw allDeadlinesResult.error
       if (overdueResult.error) throw overdueResult.error
       if (activityResult.error) throw activityResult.error
-
-      // Also fetch overdue deadlines for the alert list
-      const { data: overdueDeadlines } = await supabase
-        .from('deadlines')
-        .select('*, assets!inner(name, identifier)')
-        .eq('completed', false)
-        .lt('due_date', today)
-        .order('due_date')
-        .limit(20)
 
       const mapDeadlineWithAsset = (d: Record<string, unknown>): DeadlineWithAsset => {
         const assets = d.assets as { name: string; identifier: string } | null
@@ -84,14 +74,9 @@ export function useDashboardStats() {
         }
       }
 
-      const allDeadlines = [
-        ...(overdueDeadlines ?? []).map(mapDeadlineWithAsset),
-        ...(deadlinesResult.data ?? []).map(mapDeadlineWithAsset),
-      ]
-
       setStats({
         totalAssets: assetsResult.count ?? 0,
-        upcomingDeadlines: allDeadlines,
+        upcomingDeadlines: (allDeadlinesResult.data ?? []).map(mapDeadlineWithAsset),
         overdueCount: overdueResult.count ?? 0,
         recentActivity: (activityResult.data ?? []) as AuditLogEntry[],
       })

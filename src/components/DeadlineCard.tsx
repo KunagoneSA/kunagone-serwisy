@@ -19,7 +19,7 @@ const typeColors: Record<DeadlineType, string> = {
 
 function getUrgencyColor(deadline: Deadline): string {
   if (deadline.completed) return 'border-l-slate-300'
-  if (!deadline.due_date) return 'border-l-blue-400' // mileage-only
+  if (!deadline.due_date) return 'border-l-blue-400'
   const days = Math.ceil(
     (new Date(deadline.due_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24)
   )
@@ -60,77 +60,71 @@ export default function DeadlineCard({ deadline, assetName, onMarkDone, onEdit }
 
   return (
     <div
-      className={`rounded-lg border border-slate-200 border-l-4 bg-white p-4 ${urgencyColor} ${
+      className={`flex items-center gap-2 rounded-lg border border-slate-200 border-l-4 bg-white px-3 py-2 ${urgencyColor} ${
         deadline.completed ? 'opacity-60' : ''
       }`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2 flex-wrap">
-            <span
-              className={`inline-flex items-center rounded-md border px-2 py-0.5 text-xs font-medium ${typeColors[deadline.type]}`}
-            >
-              {typeLabels[deadline.type]}
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`inline-flex rounded border px-1.5 py-px text-[10px] font-medium ${typeColors[deadline.type]}`}>
+            {typeLabels[deadline.type]}
+          </span>
+          <span className="text-xs font-medium text-slate-900">{deadline.title}</span>
+          {deadline.completed && (
+            <span className="inline-flex items-center gap-0.5 text-[10px] text-slate-400">
+              <Check className="h-3 w-3" /> Wykonane
             </span>
-            {deadline.completed && (
-              <span className="inline-flex items-center gap-1 text-xs text-slate-500">
-                <Check className="h-3 w-3" /> Wykonane
-              </span>
-            )}
-          </div>
-          <p className="mt-1.5 text-sm font-medium text-slate-900">{deadline.title}</p>
-          <div className="mt-1 flex items-center gap-3 text-xs text-slate-500 flex-wrap">
-            {deadline.due_date && (
-              <>
-                <span>{new Date(deadline.due_date).toLocaleDateString('pl-PL')}</span>
-                {!deadline.completed && (
-                  <span className="font-medium">
-                    {formatDaysRemaining(deadline.due_date)}
-                  </span>
-                )}
-              </>
-            )}
-            {deadline.due_mileage != null && (
-              <span className="inline-flex items-center gap-1 font-medium text-blue-600">
-                <Gauge className="h-3 w-3" />
-                {deadline.due_mileage.toLocaleString('pl-PL')} km
-              </span>
-            )}
-            {deadline.is_recurring && deadline.recurrence_rule && (
-              <span className="text-slate-400">{deadline.recurrence_rule}</span>
-            )}
-          </div>
+          )}
         </div>
+        <div className="flex items-center gap-2 text-[11px] text-slate-500 flex-wrap">
+          {deadline.due_date && (
+            <>
+              <span>{new Date(deadline.due_date).toLocaleDateString('pl-PL')}</span>
+              {!deadline.completed && (
+                <span className="font-medium">{formatDaysRemaining(deadline.due_date)}</span>
+              )}
+            </>
+          )}
+          {deadline.due_mileage != null && (
+            <span className="inline-flex items-center gap-0.5 font-medium text-blue-600">
+              <Gauge className="h-2.5 w-2.5" />
+              {deadline.due_mileage.toLocaleString('pl-PL')} km
+            </span>
+          )}
+          {deadline.is_recurring && deadline.recurrence_rule && (
+            <span className="text-slate-300">{deadline.recurrence_rule}</span>
+          )}
+        </div>
+      </div>
 
-        <div className="flex items-center gap-1">
-          {!deadline.completed && (
-            <button
-              onClick={() => onMarkDone(deadline)}
-              title="Oznacz jako wykonane"
-              className="rounded-md p-1.5 text-slate-400 hover:bg-emerald-50 hover:text-emerald-600"
-            >
-              <Check className="h-4 w-4" />
-            </button>
-          )}
-          {calendarUrl && (
-            <a
-              href={calendarUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Dodaj do Google Calendar"
-              className="rounded-md p-1.5 text-slate-400 hover:bg-blue-50 hover:text-blue-600"
-            >
-              <CalendarPlus className="h-4 w-4" />
-            </a>
-          )}
+      <div className="flex items-center gap-0.5 shrink-0">
+        {!deadline.completed && (
           <button
-            onClick={() => onEdit(deadline)}
-            title="Edytuj"
-            className="rounded-md p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            onClick={() => onMarkDone(deadline)}
+            title="Oznacz jako wykonane"
+            className="rounded-md p-1 text-slate-300 hover:bg-emerald-50 hover:text-emerald-600"
           >
-            <Pencil className="h-4 w-4" />
+            <Check className="h-3.5 w-3.5" />
           </button>
-        </div>
+        )}
+        {calendarUrl && (
+          <a
+            href={calendarUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            title="Dodaj do Google Calendar"
+            className="rounded-md p-1 text-slate-300 hover:bg-blue-50 hover:text-blue-600"
+          >
+            <CalendarPlus className="h-3.5 w-3.5" />
+          </a>
+        )}
+        <button
+          onClick={() => onEdit(deadline)}
+          title="Edytuj"
+          className="rounded-md p-1 text-slate-300 hover:bg-slate-100 hover:text-slate-600"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+        </button>
       </div>
     </div>
   )

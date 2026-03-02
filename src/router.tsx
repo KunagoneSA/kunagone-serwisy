@@ -1,13 +1,24 @@
+import { lazy, Suspense } from 'react'
 import { createBrowserRouter } from 'react-router-dom'
 import RootLayout from './layouts/RootLayout'
 import AppLayout from './layouts/AppLayout'
 import ProtectedRoute from './components/ProtectedRoute'
 import LoginPage from './pages/LoginPage'
-import DashboardPage from './pages/DashboardPage'
-import AssetsPage from './pages/AssetsPage'
-import AuditLogPage from './pages/AuditLogPage'
-import SettingsPage from './pages/SettingsPage'
-import AssetDetailPage from './pages/AssetDetailPage'
+
+const DashboardPage = lazy(() => import('./pages/DashboardPage'))
+const AssetsPage = lazy(() => import('./pages/AssetsPage'))
+const AssetDetailPage = lazy(() => import('./pages/AssetDetailPage'))
+const AuditLogPage = lazy(() => import('./pages/AuditLogPage'))
+const SettingsPage = lazy(() => import('./pages/SettingsPage'))
+const MileageReportPage = lazy(() => import('./pages/MileageReportPage'))
+
+function LazyPage({ children }: { children: React.ReactNode }) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center py-12"><div className="h-6 w-6 animate-spin rounded-full border-2 border-slate-300 border-t-amber-500" /></div>}>
+      {children}
+    </Suspense>
+  )
+}
 
 export const router = createBrowserRouter([
   {
@@ -25,11 +36,12 @@ export const router = createBrowserRouter([
           </ProtectedRoute>
         ),
         children: [
-          { index: true, element: <DashboardPage /> },
-          { path: 'zasoby', element: <AssetsPage /> },
-          { path: 'zasoby/:id', element: <AssetDetailPage /> },
-          { path: 'historia', element: <AuditLogPage /> },
-          { path: 'ustawienia', element: <SettingsPage /> },
+          { index: true, element: <LazyPage><DashboardPage /></LazyPage> },
+          { path: 'zasoby', element: <LazyPage><AssetsPage /></LazyPage> },
+          { path: 'zasoby/:id', element: <LazyPage><AssetDetailPage /></LazyPage> },
+          { path: 'przebieg', element: <LazyPage><MileageReportPage /></LazyPage> },
+          { path: 'historia', element: <LazyPage><AuditLogPage /></LazyPage> },
+          { path: 'ustawienia', element: <LazyPage><SettingsPage /></LazyPage> },
         ],
       },
     ],
