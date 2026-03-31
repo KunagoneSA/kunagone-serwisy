@@ -34,6 +34,28 @@ export default function AssetDetailPage() {
   const [editingMileageValue, setEditingMileageValue] = useState('')
   const [editingMileageDate, setEditingMileageDate] = useState('')
 
+  const [newMileage, setNewMileage] = useState('')
+  const [newMileageNotes, setNewMileageNotes] = useState('')
+  const [addingMileage, setAddingMileage] = useState(false)
+
+  const handleAddMileage = async () => {
+    const val = parseInt(newMileage, 10)
+    if (isNaN(val) || val <= 0 || !id) return
+    setAddingMileage(true)
+    await supabase.from('mileage_reports').insert({
+      asset_id: id,
+      mileage: val,
+      notes: newMileageNotes || null,
+      reported_by: user?.id ?? null,
+    })
+    await supabase.from('assets').update({ current_mileage: val }).eq('id', id)
+    setNewMileage('')
+    setNewMileageNotes('')
+    setAddingMileage(false)
+    refetchMileage()
+    refetchAsset()
+  }
+
   const [showAssetModal, setShowAssetModal] = useState(false)
   const [editingEntry, setEditingEntry] = useState<ServiceEntry | null | undefined>(undefined)
   const [editingDeadline, setEditingDeadline] = useState<Deadline | null | undefined>(undefined)
@@ -291,10 +313,41 @@ export default function AssetDetailPage() {
       {/* Mileage history - only for vehicles, at the bottom */}
       {asset.type === 'vehicle' && (
         <div className="mt-6">
-          <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900 mb-2">
-            <Gauge className="h-4 w-4 text-slate-400" />
-            Historia przebiegów
-          </h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-900">
+              <Gauge className="h-4 w-4 text-slate-400" />
+              Historia przebiegów
+            </h2>
+          </div>
+
+          <form
+            onSubmit={(e) => { e.preventDefault(); handleAddMileage() }}
+            className="flex items-center gap-2 mb-3 rounded-lg border border-slate-200 bg-white px-3 py-2"
+          >
+            <input
+              type="number"
+              value={newMileage}
+              onChange={(e) => setNewMileage(e.target.value)}
+              placeholder="Przebieg (km)"
+              min="0"
+              className="w-28 rounded border border-slate-200 px-2 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-300"
+            />
+            <input
+              type="text"
+              value={newMileageNotes}
+              onChange={(e) => setNewMileageNotes(e.target.value)}
+              placeholder="Notatka (opcjonalnie)"
+              className="flex-1 rounded border border-slate-200 px-2 py-1 text-xs text-slate-800 placeholder-slate-400 outline-none focus:ring-2 focus:ring-amber-500/30 focus:border-amber-300"
+            />
+            <button
+              type="submit"
+              disabled={addingMileage || !newMileage}
+              className="inline-flex items-center gap-1 rounded-lg bg-amber-500 px-3 py-1 text-xs font-medium text-slate-900 hover:bg-amber-400 disabled:opacity-40"
+            >
+              <Plus className="h-3 w-3" />
+              Dodaj
+            </button>
+          </form>
 
           {mileageLoading ? (
             <div className="space-y-1">
