@@ -6,6 +6,10 @@ import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
   base: '/',
+  server: {
+    port: 5175,
+    strictPort: true,
+  },
   build: {
     rollupOptions: {
       output: {
