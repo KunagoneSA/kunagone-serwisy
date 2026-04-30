@@ -1,6 +1,6 @@
 export type AssetType = 'vehicle' | 'equipment' | 'infrastructure'
 export type ServiceStatus = 'done' | 'pending' | 'waiting' | 'external' | 'postponed'
-export type DeadlineType = 'insurance' | 'inspection' | 'homologation' | 'service' | 'other'
+export type DeadlineType = 'insurance' | 'inspection' | 'homologation' | 'service' | 'payment' | 'other'
 export type AuditAction = 'insert' | 'update' | 'delete'
 
 export interface Asset {

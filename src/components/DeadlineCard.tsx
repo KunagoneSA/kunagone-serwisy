@@ -6,6 +6,7 @@ const typeLabels: Record<DeadlineType, string> = {
   inspection: 'Przegląd',
   homologation: 'Homologacja',
   service: 'Serwis',
+  payment: 'Płatność',
   other: 'Inne',
 }
 
@@ -14,6 +15,7 @@ const typeColors: Record<DeadlineType, string> = {
   inspection: 'bg-orange-100 text-orange-700 border-orange-200',
   homologation: 'bg-fuchsia-100 text-fuchsia-700 border-fuchsia-200',
   service: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+  payment: 'bg-rose-100 text-rose-700 border-rose-200',
   other: 'bg-slate-100 text-slate-700 border-slate-200',
 }
 

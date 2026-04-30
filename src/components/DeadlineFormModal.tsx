@@ -16,6 +16,7 @@ const typeOptions: { value: DeadlineType; label: string }[] = [
   { value: 'inspection', label: 'Przegląd' },
   { value: 'homologation', label: 'Homologacja' },
   { value: 'service', label: 'Serwis' },
+  { value: 'payment', label: 'Płatność' },
   { value: 'other', label: 'Inne' },
 ]
 
